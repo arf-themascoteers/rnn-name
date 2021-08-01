@@ -15,13 +15,13 @@ def train():
     model.train()
     criterion = nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
-    hidden = torch.zeros(1, name_dataset.N_LETTERS).to(device)
+    initial_hidden = torch.zeros(1, 128).to(device)
     num_epochs = 10
     loss_records = []
     for epoch in range(num_epochs):
         for (name, language) in dataloader:
             name = name.to(device)
-            output, hidden = model.process_name(name, hidden)
+            output, hidden = model.process_name(name, initial_hidden)
             language = language.to(device)
             loss = criterion(output, language)
             optimizer.zero_grad()
