@@ -7,33 +7,27 @@ from torch.utils.data import DataLoader
 from name_dataset import NameDataset
 import matplotlib.pyplot as plt
 
-def train():
+def test():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     nd = NameDataset(is_train=False)
-    dataloader = DataLoader(nd, batch_size=1, shuffle=True)
-    model = rnn.RNN(nd.cats.shape[0]).to(device)
-    model.train()
-    criterion = nn.NLLLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
-    initial_hidden = torch.zeros(20, 128).to(device)
-    num_epochs = 10
-    loss_records = []
-    for epoch in range(num_epochs):
-        for (name, language) in dataloader:
-            name = name.to(device)
-            output, hidden = model.process_name(name, initial_hidden)
-            language = language.to(device)
-            loss = criterion(output, language)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        print(f'Epoch:{epoch + 1}, Loss:{loss.item():.4f}')
-        loss_records.append(loss.item())
+    dataloader = DataLoader(nd, batch_size=2000, shuffle=True)
+    model = rnn.RNN(len(nd.languages)).to(device)
+    model.load_state_dict(torch.load("models/rnn.h5"))
+    model.eval()
 
-    torch.save(model.state_dict(), 'models/rnn.h5')
-    plt.plot(loss_records)
-    plt.show()
+    total = 0
+    correct = 0
+    for (name, language) in dataloader:
+        initial_hidden = torch.zeros(name.shape[0], 128).to(device)
+        output, hidden = model.process_name(name, initial_hidden)
+        language = language.to(device)
+        total = total + name.shape[0]
+        argmx = output.argmax(dim=1)
+        correct = correct + (language.eq(argmx).sum())
+
+    print(f"Total {total}")
+    print(f"Correct {correct}")
 
 if __name__ == "__main__":
-    train()
+    test()
     exit(0)
