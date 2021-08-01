@@ -9,18 +9,18 @@ import matplotlib.pyplot as plt
 
 def train():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    nd = NameDataset(is_train=True)
-    dataloader = DataLoader(nd, batch_size=2000, shuffle=True)
-    model = rnn.RNN(len(nd.languages)).to(device)
+    nd = NameDataset(is_train=False)
+    dataloader = DataLoader(nd, batch_size=1, shuffle=True)
+    model = rnn.RNN(nd.cats.shape[0]).to(device)
     model.train()
     criterion = nn.NLLLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
+    initial_hidden = torch.zeros(20, 128).to(device)
     num_epochs = 10
     loss_records = []
     for epoch in range(num_epochs):
         for (name, language) in dataloader:
-            initial_hidden = torch.zeros(name.shape[0], 128).to(device)
-            #name = name.to(device)
+            name = name.to(device)
             output, hidden = model.process_name(name, initial_hidden)
             language = language.to(device)
             loss = criterion(output, language)

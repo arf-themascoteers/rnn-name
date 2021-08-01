@@ -22,5 +22,5 @@ class RNN(nn.Module):
         output = None
         hidden = init_hidden
         for i in range(name.shape[1]):
-            output, hidden = self(name[0][i], hidden)
+            output, hidden = self(name[:,i], hidden)
         return output, hidden

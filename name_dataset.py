@@ -7,6 +7,7 @@ import torch
 
 ALL_LETTERS = string.ascii_letters + " .,;'"
 N_LETTERS = len(ALL_LETTERS)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class NameDataset(Dataset):
     def __init__(self, is_train):
@@ -26,7 +27,7 @@ class NameDataset(Dataset):
                 name_dict[language] = names
 
         self.languages = list(name_dict.keys())
-        self.cats = torch.eye(len(self.languages))
+
 
         self.data = []
         for cat in name_dict:
@@ -40,15 +41,12 @@ class NameDataset(Dataset):
         else:
             self.data_indices = [i for i in range(len(self.data)) if i%10 == 0]
 
-    def letter_to_tensor(self, letter):
-        tensor = torch.zeros(1, N_LETTERS)
-        tensor[0][ALL_LETTERS.index(letter)] = 1
-        return tensor
-
     def name_to_tensor(self, name):
-        tensor = torch.zeros(len(name), 1, N_LETTERS)
+        tensor = torch.zeros(7, N_LETTERS).to(device)
         for i, letter in enumerate(name):
-            tensor[i][0][ALL_LETTERS.index(letter)] = 1
+            if i>= tensor.shape[0]:
+                break
+            tensor[i][ALL_LETTERS.index(letter)] = 1
         return tensor
 
     def _unicode_to_ascii(self, s):
